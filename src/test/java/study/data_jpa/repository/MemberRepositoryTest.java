@@ -1,12 +1,15 @@
 package study.data_jpa.repository;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import java.util.Arrays;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
+import study.data_jpa.dto.MemberDto;
 import study.data_jpa.entity.Member;
+import study.data_jpa.entity.Team;
 
 @SpringBootTest
 @Transactional
@@ -15,6 +18,8 @@ class MemberRepositoryTest {
 
     @Autowired
     MemberRepository memberRepository;
+    @Autowired
+    TeamRepository teamRepository;
 
     @Test
     void testMember() {
@@ -80,6 +85,69 @@ class MemberRepositoryTest {
         memberRepository.save(m1);
         memberRepository.save(m2);
         List<Member> result = memberRepository.findUser("AAA", 10);
-        assertThat(result.get(0).getAge()).isEqualTo(10);
+        assertThat(result.get(0)).isEqualTo(m1);
+    }
+
+    @Test
+    public void findUsernameList() {
+        Member m1 = new Member("AAA", 10);
+        Member m2 = new Member("AAA", 20);
+        memberRepository.save(m1);
+        memberRepository.save(m2);
+
+        List<String> result = memberRepository.findUsernameList();
+        for (String string : result) {
+            System.out.println("findUsernameList = " + string);
+        }
+    }
+
+    @Test
+    public void findMemberDto() {
+        Team t1 = new Team("teamA");
+        teamRepository.save(t1);
+
+        Member m1 = new Member("AAA", 10);
+        memberRepository.save(m1);
+        m1.setTeam(t1);
+
+        List<MemberDto> result = memberRepository.findMemberDto();
+        for (MemberDto dto : result) {
+            System.out.println("findMemberDto = " + dto);
+        }
+    }
+
+    @Test
+    public void findByNames() {
+        Member m1 = new Member("AAA", 10);
+        Member m2 = new Member("AAA", 20);
+        memberRepository.save(m1);
+        memberRepository.save(m2);
+
+        List<Member> result = memberRepository.findByNames(Arrays.asList("AAA", "BBB"));
+        for (Member dto : result) {
+            System.out.println("findByNames = " + dto);
+        }
+    }
+
+    @Test
+    public void returnType() {
+        Member m1 = new Member("AAA", 10);
+        Member m2 = new Member("BBB", 20);
+        memberRepository.save(m1);
+        memberRepository.save(m2);
+
+        List<Member> result = memberRepository.findListByUsername("AAA");
+        for (Member dto : result) {
+            System.out.println("findListByUsername = " + dto);
+        }
+        Member findResult = memberRepository.findMemberListByUsername("AAA");
+        System.out.println("findMemberListByUsername = " + findResult);
+
+        // Optional<Member> optional = memberRepository.findOptionalListByUsername("AAA");
+        // System.out.println("findOptionalListByUsername = " + optional);
+        //
+        // // 컬렉션 조회할 때 문제, 데이터가 없을 경우 empty 컬렉션으로 반환됨
+        // Optional<Member> optional_null = memberRepository.findOptionalListByUsername("A");
+        // System.out.println("findOptionalListByUsername_null = " + optional_null);
     }
 }
