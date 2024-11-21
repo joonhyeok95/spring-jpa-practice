@@ -3,10 +3,17 @@ package study.data_jpa.repository;
 import static org.assertj.core.api.Assertions.assertThat;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Slice;
+import org.springframework.data.domain.Sort;
 import org.springframework.transaction.annotation.Transactional;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import study.data_jpa.dto.MemberDto;
 import study.data_jpa.entity.Member;
 import study.data_jpa.entity.Team;
@@ -20,6 +27,9 @@ class MemberRepositoryTest {
     MemberRepository memberRepository;
     @Autowired
     TeamRepository teamRepository;
+
+    @PersistenceContext
+    EntityManager em;
 
     @Test
     void testMember() {
@@ -141,13 +151,108 @@ class MemberRepositoryTest {
             System.out.println("findListByUsername = " + dto);
         }
         Member findResult = memberRepository.findMemberListByUsername("AAA");
-        System.out.println("findMemberListByUsername = " + findResult);
 
-        // Optional<Member> optional = memberRepository.findOptionalListByUsername("AAA");
-        // System.out.println("findOptionalListByUsername = " + optional);
+        Optional<Member> optional = memberRepository.findOptionalListByUsername("AAA");
         //
-        // // 컬렉션 조회할 때 문제, 데이터가 없을 경우 empty 컬렉션으로 반환됨
-        // Optional<Member> optional_null = memberRepository.findOptionalListByUsername("A");
-        // System.out.println("findOptionalListByUsername_null = " + optional_null);
+        // 컬렉션 조회할 때 문제, 데이터가 없을 경우 empty 컬렉션으로 반환됨
+        Optional<Member> optional_null = memberRepository.findOptionalListByUsername("A");
+
+        System.out.println("findMemberListByUsername = " + findResult);
+        System.out.println("findOptionalListByUsername = " + optional);
+        System.out.println("findOptionalListByUsername_null = " + optional_null);
     }
+
+    // 페이징 테스트
+    @Test
+    public void paging() {
+        // given
+        memberRepository.save(new Member("AAA1", 10));
+        memberRepository.save(new Member("AAA2", 10));
+        memberRepository.save(new Member("AAA3", 10));
+        memberRepository.save(new Member("AAA4", 10));
+        memberRepository.save(new Member("AAA5", 10));
+        memberRepository.save(new Member("AAA6", 10));
+        memberRepository.save(new Member("AAA7", 10));
+        memberRepository.save(new Member("AAA8", 10));
+        memberRepository.save(new Member("AAA9", 10));
+
+        int age = 10;
+        PageRequest pageRequest = PageRequest.of(0, 3, Sort.by(Sort.Direction.DESC, "username"));
+
+        // when
+        Page<Member> page = memberRepository.findByAge(age, pageRequest);
+        List<Member> content = page.getContent();
+        for (Member m : content) {
+            System.out.println("member = " + m);
+        }
+        System.out.println("size=" + page.getTotalPages() + ", total=" + page.getTotalElements());
+
+        assertThat(content.size()).isEqualTo(3);
+        assertThat(page.getTotalElements()).isEqualTo(9);
+        assertThat(page.getNumber()).isEqualTo(0);
+        assertThat(page.getTotalPages()).isEqualTo(3);
+        assertThat(page.isFirst()).isTrue();
+        assertThat(page.hasNext()).isTrue();
+
+
+    }
+
+    // 페이징 테스트2 : Slice
+    @Test
+    public void pagingSlice() {
+        // given
+        memberRepository.save(new Member("AAA1", 10));
+        memberRepository.save(new Member("AAA2", 10));
+        memberRepository.save(new Member("AAA3", 10));
+        memberRepository.save(new Member("AAA4", 10));
+        memberRepository.save(new Member("AAA5", 10));
+        memberRepository.save(new Member("AAA6", 10));
+        memberRepository.save(new Member("AAA7", 10));
+        memberRepository.save(new Member("AAA8", 10));
+        memberRepository.save(new Member("AAA9", 10));
+
+        int age = 10;
+        PageRequest pageRequest = PageRequest.of(0, 3, Sort.by(Sort.Direction.DESC, "username"));
+
+        // when
+        Slice<Member> page = memberRepository.findSliceByAge(age, pageRequest);
+
+        // dto 로 변환
+        Slice<MemberDto> toMap =
+                page.map(member -> new MemberDto(member.getId(), member.getUsername(), null));
+
+
+        List<Member> content = page.getContent();
+        for (Member m : content) {
+            System.out.println("member = " + m);
+        }
+        // System.out.println("size=" + page.getTotalPages() + ", total=" +
+        // page.getTotalElements());
+
+        assertThat(content.size()).isEqualTo(3);
+        // assertThat(page.getTotalElements()).isEqualTo(9); // Slice는 count query가 없어서 없는 상태
+        assertThat(page.getNumber()).isEqualTo(0);
+        // assertThat(page.getTotalPages()).isEqualTo(3); // Slice는 count query가 없어서 없는 상태
+        assertThat(page.isFirst()).isTrue();
+        assertThat(page.hasNext()).isTrue();
+    }
+
+    @Test
+    public void bulkUpdate() {
+        // given
+        memberRepository.save(new Member("AAA1", 10));
+        memberRepository.save(new Member("AAA2", 19));
+        memberRepository.save(new Member("AAA3", 20));
+        memberRepository.save(new Member("AAA4", 25));
+
+        // when
+        int resultCount = memberRepository.bulkAgePlus(20);
+        em.flush();
+        em.clear();
+
+
+        // then
+        assertThat(resultCount).isEqualTo(2);
+    }
+
 }
