@@ -324,4 +324,47 @@ class MemberRepositoryTest {
     public void callCustom() {
         List<Member> result = memberRepository.findMemberCustom();
     }
+    
+    // 순수JPA로 해보기 : Member.java 에서 JpaBaseEntity 를 상속
+    @Test
+    public void JpaEventBaseEntity() throws InterruptedException {
+        //given
+        Member m1 = new Member("AAA", 10);
+        memberRepository.save(m1); // @PrePersist
+        
+        Thread.sleep(100);
+        m1.setUsername("AAB");
+        
+        em.flush(); //@PreUpdate
+        em.clear();
+        
+        //when
+        Member findMember = memberRepository.findById(m1.getId()).get();
+        
+        //then
+        System.out.println("findMember.createdDate = " + findMember.getCreatedDate());
+//        System.out.println("findMember.updatedDate = " + findMember.getUpdatedDate());
+    }    
+    // Spring JPA로 해보기
+    @Test
+    public void EventBaseEntity() throws InterruptedException {
+        //given
+        Member m1 = new Member("AAA", 10);
+        memberRepository.save(m1); // @PrePersist
+        
+        Thread.sleep(100);
+        m1.setUsername("AAB");
+        
+        em.flush(); //@PreUpdate
+        em.clear();
+        
+        //when
+        Member findMember = memberRepository.findById(m1.getId()).get();
+        
+        //then
+        System.out.println("findMember.createdDate = " + findMember.getCreatedDate());
+        System.out.println("findMember.updatedDate = " + findMember.getLastModifiedDate());
+        System.out.println("findMember.createdBy = " + findMember.getCreatedBy());
+        System.out.println("findMember.updatedBy = " + findMember.getLastModifiedBy());
+    }
 }
