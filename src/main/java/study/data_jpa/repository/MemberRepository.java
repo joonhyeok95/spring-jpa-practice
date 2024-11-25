@@ -49,7 +49,7 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
     Slice<Member> findSliceByAge(int age, Pageable page);
 
     // 벌크성 수정 쿼리
-    @Modifying // 이게 있어야 executeUpdate 를 호출한다.
+    @Modifying(clearAutomatically = true) // 이게 있어야 executeUpdate 를 호출한다.
     @Query("update Member m set m.age = m.age + 1 where m.age >= :age")
     int bulkAgePlus(@Param("age") int age);
 }
