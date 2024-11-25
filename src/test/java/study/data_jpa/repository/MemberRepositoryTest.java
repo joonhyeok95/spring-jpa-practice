@@ -254,5 +254,39 @@ class MemberRepositoryTest {
         // then
         assertThat(resultCount).isEqualTo(2);
     }
+    
+    @Test
+    public void findMemberLazy() {
+        
+        //given
+        //member1 -> teamA
+        //member2 -> teamB
+        Team t1 = new Team("teamA");
+        Team t2 = new Team("teamB");
+        teamRepository.save(t1);
+        teamRepository.save(t2);
+
+        Member m1 = new Member("AAA1", 10, t1);
+        Member m2 = new Member("AAA2", 10, t2);
+        memberRepository.save(m1);
+        memberRepository.save(m2);
+        
+        em.flush();
+        em.clear();
+        
+        //when
+//        List<Member> members = memberRepository.findAll(); // Member 만 가져옴
+        List<Member> members = memberRepository.findMemberFetchJoin(); // fetch join
+        //select Member -- N+1 문제
+        // fetch join 을 안했을 때..
+        // Member 안의 Team은 가짜객체로 가져오기 때문에 또 Query를 요청하게 되는 현상
+        // 이후 프록시 객체를 
+        for(Member member : members) {
+            System.out.println("member = " + member.getUsername());
+            System.out.println("member.teamClass = " + member.getTeam().getClass()); // $HibernateProxy$467O8oa2
+            System.out.println("member.team = " + member.getTeam().getName());
+        }
+        
+    }
 
 }
