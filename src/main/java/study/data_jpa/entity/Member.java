@@ -31,7 +31,7 @@ public class Member extends BaseEntity{
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "team_id")
     private Team team;
-    //
+    // @NoArgsConstructor(access = AccessLevel.PROTECTED) 이걸 넣었기 때문에 아래 코드 생략가능
     // protected Member() {
     // // JPA 표준스펙에 디폴트 생성자가 필수이기에
     // // JPA Proxy 기술을 쓸 때 객체를 만들어내고 하기 떄문에 상속을 허용해야함
