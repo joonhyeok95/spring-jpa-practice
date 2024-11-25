@@ -18,7 +18,7 @@ import jakarta.persistence.QueryHint;
 import study.data_jpa.dto.MemberDto;
 import study.data_jpa.entity.Member;
 
-public interface MemberRepository extends JpaRepository<Member, Long> {
+public interface MemberRepository extends JpaRepository<Member, Long>, MemberRepositoryCustom {
 
     List<Member> findByUsernameAndAgeGreaterThan(String username, int age);
 

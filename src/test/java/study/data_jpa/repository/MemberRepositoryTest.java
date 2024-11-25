@@ -319,4 +319,9 @@ class MemberRepositoryTest {
         
         em.flush(); // 변경감지 update 쿼리 수행
     }
+    
+    @Test
+    public void callCustom() {
+        List<Member> result = memberRepository.findMemberCustom();
+    }
 }
