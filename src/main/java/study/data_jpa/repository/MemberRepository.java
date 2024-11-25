@@ -8,9 +8,13 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Slice;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.jpa.repository.QueryHints;
 import org.springframework.data.repository.query.Param;
+import jakarta.persistence.LockModeType;
+import jakarta.persistence.QueryHint;
 import study.data_jpa.dto.MemberDto;
 import study.data_jpa.entity.Member;
 
@@ -69,4 +73,10 @@ public interface MemberRepository extends JpaRepository<Member, Long> {
     @EntityGraph(attributePaths = ("team"))
     List<Member> findEntityGrapthByUsername(@Param("username") String username);
     
+    // JPA Hint & Lock 강의파트
+    @QueryHints(value = @QueryHint(name = "org.hibernate.readOnly", value = "true"))
+    Member findReadOnlyByUsername(String username);
+    
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    List<Member> findLockByUsername(String username);
 }

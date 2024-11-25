@@ -254,7 +254,7 @@ class MemberRepositoryTest {
         // then
         assertThat(resultCount).isEqualTo(2);
     }
-    
+    // EntityGraph
     @Test
     public void findMemberLazy() {
         
@@ -288,5 +288,35 @@ class MemberRepositoryTest {
         }
         
     }
-
+    // Jpa Hint
+    @Test
+    public void queryHint() {
+        // given
+        Member m1 = new Member("AAA1", 10);
+        memberRepository.save(m1);
+        em.flush(); // query 를 날림 (DB동기화)
+        em.clear(); // 영속성 캐시를 날림(1차캐시초기화)
+        
+        //when
+//        Member findMember = memberRepository.findById(m1.getId()).get();
+        Member findMember = memberRepository.findReadOnlyByUsername(m1.getUsername());
+        findMember.setUsername("AAA2");
+        
+        em.flush(); // 변경감지 update 쿼리 수행
+    }
+    // JPA Lcok
+    @Test
+    public void queryLock() {
+        // given
+        Member m1 = new Member("AAA1", 10);
+        memberRepository.save(m1);
+        em.flush(); // query 를 날림 (DB동기화)
+        em.clear(); // 영속성 캐시를 날림(1차캐시초기화)
+        
+        //when
+        List<Member> findMember = memberRepository.findLockByUsername("AAA1");
+//        findMember.setUsername("AAA2");
+        
+        em.flush(); // 변경감지 update 쿼리 수행
+    }
 }
